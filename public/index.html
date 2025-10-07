@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diagnóstico Completo de Maturidade em Gestão</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #004a99;
+            margin: 0;
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #fafafa;
+        }
+
+        legend {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #004a99;
+            padding: 0 10px;
+            margin-left: 10px;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .question:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .question p {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .options label {
+            display: block;
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .options input[type="radio"] {
+            display: none;
+        }
+
+        .options input[type="radio"]:checked + label {
+            background-color: #e0edff;
+            border-left: 4px solid #0056b3;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 86, 179, 0.1);
+        }
+
+        .options label:hover {
+            background-color: #e9e9e9;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            background-color: #0056b3;
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #004a99;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        #results {
+            display: none;
+            padding-top: 40px;
+            border-top: 2px solid #e0e0e0;
+            margin-top: 40px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .results-header h2 {
+            color: #004a99;
+            font-size: 2.2em;
+        }
+
+        .chart-container {
+            max-width: 600px;
+            margin: 40px auto;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .analysis-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+        }
+
+        .analysis-card h3 {
+            margin-top: 0;
+            color: #004a99;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .analysis-card ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .analysis-card ul li {
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .icon-check::before {
+            content: '✅ ';
+        }
+
+        .icon-attention::before {
+            content: '⚠️ ';
+        }
+
+        .icon-action::before {
+            content: '🚀 ';
+        }
+
+        #userInfo input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 10px;
+            display: none;
+            font-size: 1.2em;
+            color: #004a99;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Diagnóstico Completo de Maturidade em Gestão</h1>
+            <p>Descubra o nível de maturidade da sua empresa em 5 pilares essenciais e receba um plano de ação personalizado.</p>
+        </header>
+
+        <form id="diagnosticForm">
+            <fieldset>
+                <legend>Seus Dados</legend>
+                <div id="userInfo">
+                    <input type="text" id="nomeEmpresa" placeholder="Nome da sua empresa" required />
+                    <input type="email" id="emailContato" placeholder="Seu melhor e-mail" required />
+                </div>
+            </fieldset>
+
+            <!-- ALINHAMENTO ESTRATÉGICO -->
+            <fieldset>
+                <legend>Alinhamento Estratégico</legend>
+                <div class="question" data-category="alinhamento">
+                    <p>1. Identidade organizacional: A empresa tem clareza sobre a proposta de valor, com visão, missão e valores bem definidos e vivenciados?</p>
+                    <div class="options">
+                        <input type="radio" name="q_alin_1" value="1" id="q1-1" required />
+                        <label for="q1-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_alin_1" value="2" id="q1-2" />
+                        <label for="q1-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_alin_1" value="3" id="q1-3" />
+                        <label for="q1-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_alin_1" value="4" id="q1-4" />
+                        <label for="q1-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_alin_1" value="5" id="q1-5" />
+                        <label for="q1-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="alinhamento">
+                    <p>2. Metas de longo prazo (3 a 5 anos): A empresa tem metas de longo prazo definidas, a partir de análises estratégicas aprofundadas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_alin_2" value="1" id="q2-1" required />
+                        <label for="q2-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_alin_2" value="2" id="q2-2" />
+                        <label for="q2-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_alin_2" value="3" id="q2-3" />
+                        <label for="q2-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_alin_2" value="4" id="q2-4" />
+                        <label for="q2-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_alin_2" value="5" id="q2-5" />
+                        <label for="q2-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="alinhamento">
+                    <p>3. Iniciativas e projetos estratégicos: A empresa desenvolve projetos estruturados, com metas claras, para alcançar os objetivos de longo prazo?</p>
+                    <div class="options">
+                        <input type="radio" name="q_alin_3" value="1" id="q3-1" required />
+                        <label for="q3-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_alin_3" value="2" id="q3-2" />
+                        <label for="q3-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_alin_3" value="3" id="q3-3" />
+                        <label for="q3-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_alin_3" value="4" id="q3-4" />
+                        <label for="q3-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_alin_3" value="5" id="q3-5" />
+                        <label for="q3-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="alinhamento">
+                    <p>4. Alinhamento com as diretrizes estratégicas: A estratégia é definida, comunicada e alinhada com toda a equipe, com revisão contínua?</p>
+                    <div class="options">
+                        <input type="radio" name="q_alin_4" value="1" id="q4-1" required />
+                        <label for="q4-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_alin_4" value="2" id="q4-2" />
+                        <label for="q4-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_alin_4" value="3" id="q4-3" />
+                        <label for="q4-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_alin_4" value="4" id="q4-4" />
+                        <label for="q4-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_alin_4" value="5" id="q4-5" />
+                        <label for="q4-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="alinhamento">
+                    <p>5. Metas globais anuais: A empresa define e comunica metas anuais com base no plano de longo prazo para alinhar as áreas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_alin_5" value="1" id="q5-1" required />
+                        <label for="q5-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_alin_5" value="2" id="q5-2" />
+                        <label for="q5-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_alin_5" value="3" id="q5-3" />
+                        <label for="q5-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_alin_5" value="4" id="q5-4" />
+                        <label for="q5-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_alin_5" value="5" id="q5-5" />
+                        <label for="q5-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="alinhamento">
+                    <p>6. Programa de incentivos: Existe um programa de remuneração variável claro para todos, que reconhece o alcance de metas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_alin_6" value="1" id="q6-1" required />
+                        <label for="q6-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_alin_6" value="2" id="q6-2" />
+                        <label for="q6-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_alin_6" value="3" id="q6-3" />
+                        <label for="q6-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_alin_6" value="4" id="q6-4" />
+                        <label for="q6-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_alin_6" value="5" id="q6-5" />
+                        <label for="q6-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Governança</legend>
+                <div class="question" data-category="governanca">
+                    <p>1. Calendário de definição das metas: A empresa tem um calendário definido e seguido para a definição de metas, integrado ao orçamento?</p>
+                    <div class="options">
+                        <input type="radio" name="q_gov_1" value="1" id="qg1-1" required />
+                        <label for="qg1-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_gov_1" value="2" id="qg1-2" />
+                        <label for="qg1-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_gov_1" value="3" id="qg1-3" />
+                        <label for="qg1-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_gov_1" value="4" id="qg1-4" />
+                        <label for="qg1-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_gov_1" value="5" id="qg1-5" />
+                        <label for="qg1-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="governanca">
+                    <p>2. Papéis e responsabilidades na gestão: As responsabilidades pela execução dos processos de gestão estão formalizadas e claras para todos?</p>
+                    <div class="options">
+                        <input type="radio" name="q_gov_2" value="1" id="qg2-1" required />
+                        <label for="qg2-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_gov_2" value="2" id="qg2-2" />
+                        <label for="qg2-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_gov_2" value="3" id="qg2-3" />
+                        <label for="qg2-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_gov_2" value="4" id="qg2-4" />
+                        <label for="qg2-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_gov_2" value="5" id="qg2-5" />
+                        <label for="qg2-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="governanca">
+                    <p>3. Participação das áreas na gestão: Os gestores participam ativamente da construção de análises para identificar oportunidades de ganho?</p>
+                    <div class="options">
+                        <input type="radio" name="q_gov_3" value="1" id="qg3-1" required />
+                        <label for="qg3-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_gov_3" value="2" id="qg3-2" />
+                        <label for="qg3-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_gov_3" value="3" id="qg3-3" />
+                        <label for="qg3-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_gov_3" value="4" id="qg3-4" />
+                        <label for="qg3-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_gov_3" value="5" id="qg3-5" />
+                        <label for="qg3-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="governanca">
+                    <p>4. Validação das metas das áreas: Existe um processo para verificar se as metas das áreas são suficientes para atingir os objetivos globais?</p>
+                    <div class="options">
+                        <input type="radio" name="q_gov_4" value="1" id="qg4-1" required />
+                        <label for="qg4-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_gov_4" value="2" id="qg4-2" />
+                        <label for="qg4-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_gov_4" value="3" id="qg4-3" />
+                        <label for="qg4-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_gov_4" value="4" id="qg4-4" />
+                        <label for="qg4-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_gov_4" value="5" id="qg4-5" />
+                        <label for="qg4-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="governanca">
+                    <p>5. Acompanhamento dos resultados: Rituais de gestão acontecem em todas as áreas e níveis com frequência ideal e foco em análise de desvios?</p>
+                    <div class="options">
+                        <input type="radio" name="q_gov_5" value="1" id="qg5-1" required />
+                        <label for="qg5-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_gov_5" value="2" id="qg5-2" />
+                        <label for="qg5-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_gov_5" value="3" id="qg5-3" />
+                        <label for="qg5-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_gov_5" value="4" id="qg5-4" />
+                        <label for="qg5-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_gov_5" value="5" id="qg5-5" />
+                        <label for="qg5-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Metodologia</legend>
+                <div class="question" data-category="metodologia">
+                    <p>1. Indicadores desdobrados: Os indicadores das áreas são definidos com base em uma árvore de indicadores com relação de causa e efeito?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_1" value="1" id="qm1-1" required />
+                        <label for="qm1-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_1" value="2" id="qm1-2" />
+                        <label for="qm1-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_1" value="3" id="qm1-3" />
+                        <label for="qm1-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_1" value="4" id="qm1-4" />
+                        <label for="qm1-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_1" value="5" id="qm1-5" />
+                        <label for="qm1-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="metodologia">
+                    <p>2. Metas lógicas e consistentes: A empresa usa técnicas (benchmarks, Six Sigma) para identificar oportunidades e lacunas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_2" value="1" id="qm2-1" required />
+                        <label for="qm2-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_2" value="2" id="qm2-2" />
+                        <label for="qm2-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_2" value="3" id="qm2-3" />
+                        <label for="qm2-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_2" value="4" id="qm2-4" />
+                        <label for="qm2-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_2" value="5" id="qm2-5" />
+                        <label for="qm2-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="metodologia">
+                    <p>3. Qualidade dos planos de ação: Os planos de ação são elaborados com base na identificação das causas raiz dos problemas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_3" value="1" id="qm3-1" required />
+                        <label for="qm3-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_3" value="2" id="qm3-2" />
+                        <label for="qm3-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_3" value="3" id="qm3-3" />
+                        <label for="qm3-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_3" value="4" id="qm3-4" />
+                        <label for="qm3-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_3" value="5" id="qm3-5" />
+                        <label for="qm3-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="metodologia">
+                    <p>4. Execução dos planos de ação: Há uma rotina estruturada de acompanhamento da execução dos planos de ação em todas as áreas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_4" value="1" id="qm4-1" required />
+                        <label for="qm4-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_4" value="2" id="qm4-2" />
+                        <label for="qm4-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_4" value="3" id="qm4-3" />
+                        <label for="qm4-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_4" value="4" id="qm4-4" />
+                        <label for="qm4-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_4" value="5" id="qm4-5" />
+                        <label for="qm4-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="metodologia">
+                    <p>5. Tratamento dos desvios: A empresa realiza rituais para assegurar ações corretivas baseadas nas causas raiz dos desvios?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_5" value="1" id="qm5-1" required />
+                        <label for="qm5-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_5" value="2" id="qm5-2" />
+                        <label for="qm5-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_5" value="3" id="qm5-3" />
+                        <label for="qm5-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_5" value="4" id="qm5-4" />
+                        <label for="qm5-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_5" value="5" id="qm5-5" />
+                        <label for="qm5-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="metodologia">
+                    <p>6. Padronização e divulgação de melhorias: As ações bem-sucedidas são padronizadas e compartilhadas entre as áreas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_6" value="1" id="qm6-1" required />
+                        <label for="qm6-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_6" value="2" id="qm6-2" />
+                        <label for="qm6-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_6" value="3" id="qm6-3" />
+                        <label for="qm6-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_6" value="4" id="qm6-4" />
+                        <label for="qm6-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_6" value="5" id="qm6-5" />
+                        <label for="qm6-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="metodologia">
+                    <p>7. Gestão de projetos estratégicos: Os projetos são planejados e acompanhados com base em metodologias de gerenciamento?</p>
+                    <div class="options">
+                        <input type="radio" name="q_met_7" value="1" id="qm7-1" required />
+                        <label for="qm7-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_met_7" value="2" id="qm7-2" />
+                        <label for="qm7-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_met_7" value="3" id="qm7-3" />
+                        <label for="qm7-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_met_7" value="4" id="qm7-4" />
+                        <label for="qm7-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_met_7" value="5" id="qm7-5" />
+                        <label for="qm7-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Ferramentas e Informação</legend>
+                <div class="question" data-category="ferramentas">
+                    <p>1. Acesso a indicadores: Os gestores têm acesso fácil a indicadores para analisar desvios e otimizar resultados?</p>
+                    <div class="options">
+                        <input type="radio" name="q_fer_1" value="1" id="qf1-1" required />
+                        <label for="qf1-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_fer_1" value="2" id="qf1-2" />
+                        <label for="qf1-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_fer_1" value="3" id="qf1-3" />
+                        <label for="qf1-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_fer_1" value="4" id="qf1-4" />
+                        <label for="qf1-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_fer_1" value="5" id="qf1-5" />
+                        <label for="qf1-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="ferramentas">
+                    <p>2. Apuração dos resultados: As informações são disponibilizadas com antecedência para que decisões sejam tomadas com agilidade?</p>
+                    <div class="options">
+                        <input type="radio" name="q_fer_2" value="1" id="qf2-1" required />
+                        <label for="qf2-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_fer_2" value="2" id="qf2-2" />
+                        <label for="qf2-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_fer_2" value="3" id="qf2-3" />
+                        <label for="qf2-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_fer_2" value="4" id="qf2-4" />
+                        <label for="qf2-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_fer_2" value="5" id="qf2-5" />
+                        <label for="qf2-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="ferramentas">
+                    <p>3. Aplicação de tecnologias avançadas: A empresa utiliza tecnologias (Analytics, IoT, Big Data) para automatizar e analisar dados?</p>
+                    <div class="options">
+                        <input type="radio" name="q_fer_3" value="1" id="qf3-1" required />
+                        <label for="qf3-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_fer_3" value="2" id="qf3-2" />
+                        <label for="qf3-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_fer_3" value="3" id="qf3-3" />
+                        <label for="qf3-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_fer_3" value="4" id="qf3-4" />
+                        <label for="qf3-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_fer_3" value="5" id="qf3-5" />
+                        <label for="qf3-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="ferramentas">
+                    <p>4. Registro, controle e avaliação das ações: A empresa utiliza uma ferramenta simples para registrar e acompanhar planos de ação?</p>
+                    <div class="options">
+                        <input type="radio" name="q_fer_4" value="1" id="qf4-1" required />
+                        <label for="qf4-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_fer_4" value="2" id="qf4-2" />
+                        <label for="qf4-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_fer_4" value="3" id="qf4-3" />
+                        <label for="qf4-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_fer_4" value="4" id="qf4-4" />
+                        <label for="qf4-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_fer_4" value="5" id="qf4-5" />
+                        <label for="qf4-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Competências e Comportamento</legend>
+                <div class="question" data-category="competencias">
+                    <p>1. Programa de capacitação: A empresa possui um programa de capacitação para desenvolver competências técnicas e comportamentais?</p>
+                    <div class="options">
+                        <input type="radio" name="q_comp_1" value="1" id="qc1-1" required />
+                        <label for="qc1-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_comp_1" value="2" id="qc1-2" />
+                        <label for="qc1-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_comp_1" value="3" id="qc1-3" />
+                        <label for="qc1-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_comp_1" value="4" id="qc1-4" />
+                        <label for="qc1-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_comp_1" value="5" id="qc1-5" />
+                        <label for="qc1-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="competencias">
+                    <p>2. Solução de problemas avançados: Os colaboradores utilizam técnicas avançadas (estatística, machine learning) para definir metas?</p>
+                    <div class="options">
+                        <input type="radio" name="q_comp_2" value="1" id="qc2-1" required />
+                        <label for="qc2-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_comp_2" value="2" id="qc2-2" />
+                        <label for="qc2-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_comp_2" value="3" id="qc2-3" />
+                        <label for="qc2-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_comp_2" value="4" id="qc2-4" />
+                        <label for="qc2-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_comp_2" value="5" id="qc2-5" />
+                        <label for="qc2-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="competencias">
+                    <p>3. Cultura de gestão: A cultura de gestão está presente no dia a dia, com equipes aplicando métodos e tecnologias naturalmente?</p>
+                    <div class="options">
+                        <input type="radio" name="q_comp_3" value="1" id="qc3-1" required />
+                        <label for="qc3-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_comp_3" value="2" id="qc3-2" />
+                        <label for="qc3-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_comp_3" value="3" id="qc3-3" />
+                        <label for="qc3-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_comp_3" value="4" id="qc3-4" />
+                        <label for="qc3-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_comp_3" value="5" id="qc3-5" />
+                        <label for="qc3-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+                <div class="question" data-category="competencias">
+                    <p>4. Multiplicadores da metodologia de gestão: Existe um programa estruturado para formar multiplicadores internos de gestão?</p>
+                    <div class="options">
+                        <input type="radio" name="q_comp_4" value="1" id="qc4-1" required />
+                        <label for="qc4-1">Ainda não iniciamos ações nessa frente.</label>
+                        <input type="radio" name="q_comp_4" value="2" id="qc4-2" />
+                        <label for="qc4-2">Já demos os primeiros passos, de forma pontual.</label>
+                        <input type="radio" name="q_comp_4" value="3" id="qc4-3" />
+                        <label for="qc4-3">Iniciativas em andamento, em estágio inicial.</label>
+                        <input type="radio" name="q_comp_4" value="4" id="qc4-4" />
+                        <label for="qc4-4">Prática na rotina, há menos de 2 anos.</label>
+                        <input type="radio" name="q_comp_4" value="5" id="qc4-5" />
+                        <label for="qc4-5">Prática consolidada há mais de 2 anos.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="button-container">
+                <button type="submit">Gerar Meu Diagnóstico</button>
+            </div>
+            <div class="loading" id="loadingMessage">
+                <p>Analisando suas respostas e gerando seu relatório...</p>
+            </div>
+        </form>
+
+        <section id="results">
+            <div class="results-header">
+                <h2>Sua Devolutiva Personalizada</h2>
+                <p>Analisamos suas respostas para gerar um panorama claro da maturidade de gestão da sua empresa.</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="maturityChart"></canvas>
+            </div>
+            <div class="analysis-grid">
+                <div class="analysis-card">
+                    <h3><span class="icon-check"></span>Pontos Fortes</h3>
+                    <ul id="strengthsList"></ul>
+                </div>
+                <div class="analysis-card">
+                    <h3><span class="icon-attention"></span>Pontos de Atenção e Oportunidades</h3>
+                    <ul id="weaknessesList"></ul>
+                </div>
+            </div>
+            <div class="analysis-grid" style="grid-template-columns: 1fr;">
+                <div class="analysis-card">
+                    <h3><span class="icon-action"></span>Sugestões de Ações Estratégicas</h3>
+                    <ul id="actionsList"></ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/a/macros/f5gestao.com/s/AKfycbztNR2YoThkcmjXzPMQbNh2uFtNh6gcJsJmnsvCgpFyKn2Er_VbK2qcgZIbj39Sa2Ie/exec';
+        const form = document.getElementById('diagnosticForm');
+        let chartInstance = null;
+
+        const categoryDetails = {
+            alinhamento: {
+                name: 'Alinhamento Estratégico',
+                strength: 'A empresa possui uma direção clara e objetivos bem definidos, o que facilita a tomada de decisão e o engajamento.',
+                weakness: 'Falta de clareza sobre o futuro e a identidade da empresa, gerando desalinhamento, retrabalho e perda de oportunidades.',
+                action: 'Conduzir um Planejamento Estratégico para (re)definir Missão, Visão, Valores e traçar metas de longo prazo (3-5 anos) com base em análises de mercado.'
+            },
+            governanca: {
+                name: 'Governança',
+                strength: 'Os processos de gestão são bem estruturados, com papéis e rituais claros, garantindo disciplina e controle.',
+                weakness: 'A gestão é reativa e desestruturada, com falta de rituais e responsabilidades claras, dificultando o acompanhamento dos resultados.',
+                action: 'Estruturar um calendário de gestão, definir papéis e responsabilidades e implementar rituais de acompanhamento de resultados para garantir a execução do plano.'
+            },
+            metodologia: {
+                name: 'Metodologia',
+                strength: 'A empresa utiliza métodos robustos para definir metas, analisar problemas e executar planos, criando uma cultura de melhoria contínua.',
+                weakness: 'Metas são definidas sem base analítica e problemas são resolvidos superficialmente, sem atacar a causa raiz, gerando soluções paliativas.',
+                action: 'Implementar metodologias de análise de causa raiz (Ishikawa) e estruturar planos de ação (5W2H) para garantir que os desvios sejam tratados de forma eficaz.'
+            },
+            ferramentas: {
+                name: 'Ferramentas e Informação',
+                strength: 'A informação flui de forma rápida e precisa, e os gestores têm as ferramentas necessárias para tomar decisões baseadas em dados.',
+                weakness: 'A falta de acesso a dados confiáveis e em tempo hábil força decisões baseadas na intuição, aumentando os riscos e a ineficiência.',
+                action: 'Mapear os indicadores-chave de performance (KPIs) e desenvolver dashboards para que os gestores tenham acesso fácil e rápido às informações cruciais.'
+            },
+            competencias: {
+                name: 'Competências e Comportamento',
+                strength: 'Existe uma forte cultura de gestão e desenvolvimento de pessoas, com equipes capacitadas e engajadas na busca por resultados.',
+                weakness: 'A cultura de gestão não é disseminada e a equipe carece de treinamento, dificultando a aplicação de métodos e a autonomia para resolver problemas.',
+                action: 'Desenvolver um programa de capacitação focado em competências de gestão (análise de dados, solução de problemas) para engajar a equipe e criar multiplicadores.'
+            }
+        };
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const loadingMessage = document.getElementById('loadingMessage');
+            const submitButton = form.querySelector('button');
+
+            loadingMessage.style.display = 'block';
+            submitButton.disabled = true;
+
+            const scores = {
+                alinhamento: [],
+                governanca: [],
+                metodologia: [],
+                ferramentas: [],
+                competencias: []
+            };
+            const questions = document.querySelectorAll('.question');
+
+            questions.forEach((q) => {
+                const category = q.dataset.category;
+                const selectedOption = q.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    scores[category].push(parseInt(selectedOption.value, 10));
+                }
+            });
+
+            const averageScores = {};
+            for (const category in scores) {
+                const values = scores[category];
+                const sum = values.reduce((a, b) => a + b, 0);
+                averageScores[category] = (sum / values.length).toFixed(2);
+            }
+
+            const { strengthsText, weaknessesText } = getAnalysisTexts(averageScores);
+
+            const payload = {
+                nomeEmpresa: document.getElementById('nomeEmpresa').value,
+                emailContato: document.getElementById('emailContato').value,
+                scores: averageScores,
+                strengths: strengthsText,
+                weaknesses: weaknessesText
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            }).finally(() => {
+                displayResults(averageScores);
+                loadingMessage.style.display = 'none';
+                submitButton.disabled = false;
+            });
+        });
+
+        function getAnalysisTexts(scores) {
+            const sortedScores = Object.entries(scores).sort(([, a], [, b]) => b - a);
+            let strengthsText = '';
+            let weaknessesText = '';
+
+            sortedScores.forEach(([key, value]) => {
+                const details = categoryDetails[key];
+                if (value >= 3.8) {
+                    strengthsText += `${details.name}; `;
+                }
+                if (value < 3.0) {
+                    weaknessesText += `${details.name}; `;
+                }
+            });
+
+            return {
+                strengthsText: strengthsText.slice(0, -2) || 'Nenhum consolidado',
+                weaknessesText: weaknessesText.slice(0, -2) || 'Nenhuma crítica'
+            };
+        }
+
+        function displayResults(scores) {
+            const resultsSection = document.getElementById('results');
+            resultsSection.style.display = 'block';
+            const sortedScores = Object.entries(scores).sort(([, a], [, b]) => b - a);
+
+            const strengthsList = document.getElementById('strengthsList');
+            const weaknessesList = document.getElementById('weaknessesList');
+            const actionsList = document.getElementById('actionsList');
+            strengthsList.innerHTML = '';
+            weaknessesList.innerHTML = '';
+            actionsList.innerHTML = '';
+
+            let hasStrength = false;
+            let hasWeakness = false;
+            sortedScores.forEach(([key, value]) => {
+                const details = categoryDetails[key];
+                if (value >= 3.8) {
+                    strengthsList.innerHTML += `<li><strong>${details.name}:</strong> ${details.strength}</li>`;
+                    hasStrength = true;
+                }
+                if (value < 3.0) {
+                    weaknessesList.innerHTML += `<li><strong>${details.name}:</strong> ${details.weakness}</li>`;
+                    actionsList.innerHTML += `<li><strong>Foco em ${details.name}:</strong> ${details.action}</li>`;
+                    hasWeakness = true;
+                }
+            });
+
+            if (!hasStrength) {
+                strengthsList.innerHTML = '<li>Nenhum ponto forte consolidado identificado. É um sinal de alerta e uma grande oportunidade para estruturar a gestão de forma integrada.</li>';
+            }
+            if (!hasWeakness) {
+                weaknessesList.innerHTML = '<li>Parabéns! Sua gestão parece estar em um nível de maturidade elevado. O desafio agora é a manutenção e a melhoria contínua.</li>';
+                actionsList.innerHTML = '<li>Sua empresa está pronta para o próximo nível. As ações sugeridas são focadas em otimização fina e inovação, como a implementação de Analytics, IA e a criação de um programa de multiplicadores internos para perpetuar a cultura de excelência.</li>';
+            }
+
+            const ctx = document.getElementById('maturityChart').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            chartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: Object.keys(scores).map((key) => categoryDetails[key].name),
+                    datasets: [
+                        {
+                            label: 'Nível de Maturidade',
+                            data: Object.values(scores),
+                            backgroundColor: 'rgba(0, 86, 179, 0.2)',
+                            borderColor: 'rgba(0, 86, 179, 1)',
+                            pointBackgroundColor: 'rgba(0, 86, 179, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(0, 86, 179, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            pointLabels: {
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label || ''}: ${ctx.parsed.r.toFixed(2)}`
+                            }
+                        }
+                    }
+                }
+            });
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

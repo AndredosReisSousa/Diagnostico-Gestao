@@ -1,0 +1,44 @@
+{
+  "Organização e Padronização": [
+    {
+      "pergunta": "A Estrutura organizacional abrange as funções: operação, supervisão, assessoria e gerencial?",
+      "resposta": "Se aplica de forma insatisfatória",
+      "pontos": 3
+    }
+  ],
+  "Treinamento e Cumprimento dos padrões": [
+    {
+      "pergunta": "Existe uma sistemática definida para treinamento operacional (TLT) nos Procedimentos Operacionais Padrão?",
+      "resposta": "Se aplica de forma insatisfatória",
+      "pontos": 3
+    }
+  ],
+  "Gerenciamento do espaço de trabalho operacional": [
+    {
+      "pergunta": "Os materiais de trabalho estão ordenados, de maneira que o uso seja facilitado?",
+      "resposta": "Se aplica satisfatoriamente",
+      "pontos": 5
+    }
+  ],
+  "Indicadores e Resultados": [
+    {
+      "pergunta": "Os Indicadores estão claramente estabelecidos e são compreendidos pelos responsáveis?",
+      "resposta": "Se aplica de forma insatisfatória",
+      "pontos": 3
+    }
+  ],
+  "Solução de problemas do dia-a-dia": [
+    {
+      "pergunta": "Existe um sistema formal de relato/registro das anomalias ou não conformidades (resultados ruins)?",
+      "resposta": "Se aplica satisfatoriamente",
+      "pontos": 5
+    }
+  ],
+  "Acompanhamento das ações de melhoria": [
+    {
+      "pergunta": "Existe alguma sistemática para acompanhamento da execução dos planos de ação?",
+      "resposta": "Se aplica de forma insatisfatória",
+      "pontos": 3
+    }
+  ]
+}
