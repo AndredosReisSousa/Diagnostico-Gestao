@@ -8,6 +8,17 @@ Este projeto é composto apenas pelo arquivo estático `public/index.html`. Voc�
 3. Arraste o arquivo `public/index.html` (ou compacte a pasta `public/` em um `.zip`) para a área de upload.
 4. Após o deploy, acesse **Site settings → Build & deploy → Post processing → Password-protect your site** e defina uma senha. O link ficará privado para quem possuir a senha.
 
+### Gerando rapidamente um link privado com a CLI
+Caso prefira fazer tudo pela linha de comando, instale a [Netlify CLI](https://docs.netlify.com/cli/get-started/) com `npm i -g netlify-cli`
+e execute na raiz do projeto:
+
+```bash
+netlify deploy --dir=public --message "Diagnóstico de Gestão" --password "SUA-SENHA-SECRETA"
+```
+
+O comando gera uma URL temporária (`Draft URL`) protegida pela senha informada. Compartilhe apenas com as pessoas que realizarão os testes.
+Quando quiser publicar definitivamente, use `netlify deploy --prod --dir=public` e mantenha a proteção por senha configurada no painel.
+
 ## Opção 2 – Vercel com proteção por cabeçalho
 1. Crie uma conta no [Vercel](https://vercel.com/).
 2. Instale a CLI: `npm i -g vercel`.
